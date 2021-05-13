@@ -1,8 +1,6 @@
 package internal
 
 import (
-	"time"
-
 	"github.com/mmuoDev/commons/uuid"
 )
 
@@ -18,12 +16,12 @@ type User struct {
 	IsVerified  bool    `bson:"isVerified"`
 }
 
-//Auth represents response after a successful authentication
-type Auth struct {
-	ID           string    `json:"id"`
-	FirstName    string    `json:"firstName"`
-	LastName     string    `json:"lastName"`
-	Role         string    `json:"role"`
-	Token        string    `json:"token"`
-	TokenExpires time.Time `json:"token_expires_on"`
+//TokenDetails defines access and refresh tokens
+type TokenDetails struct {
+	AccessToken  string
+	RefreshToken string
+	AccessUUID   string
+	RefreshUUID  string
+	ATExpires    int64
+	RTExpires    int64
 }

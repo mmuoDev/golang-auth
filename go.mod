@@ -4,7 +4,8 @@ go 1.15
 
 require (
 	github.com/aws/aws-sdk-go v1.38.38 // indirect
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/go-redis/redis/v7 v7.4.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/klauspost/compress v1.12.2 // indirect
 	github.com/mmuoDev/commons v0.0.0-20210512130444-627240af0746

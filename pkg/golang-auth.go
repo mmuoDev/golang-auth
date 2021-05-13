@@ -11,8 +11,16 @@ type User struct {
 	IsVerified  bool   `json:"isVerified"`
 }
 
-//Auth represents data needed to authenticate a user and generate a token
-type Auth struct {
+//Login represents data needed to authenticate a user and generate a token
+type Login struct {
 	PhoneNumber string `json:"phoneNumber"`
 	Password    string `json:"password"`
+}
+
+//Auth represents data after successful authentication
+type Auth struct {
+	ID           string `json:"id"`
+	PhoneNumber  string `json:"phoneNumber"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }

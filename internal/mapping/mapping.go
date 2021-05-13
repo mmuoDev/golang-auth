@@ -35,3 +35,13 @@ func ToDBUser(u pkg.User) (internal.User, error) {
 		IsVerified:  false,
 	}, nil
 }
+
+//ToAuth maps authenticated user to token
+func ToAuth(u internal.User, td *internal.TokenDetails) pkg.Auth {
+	return pkg.Auth{
+		ID:           u.ID.Val(),
+		PhoneNumber:  u.PhoneNumber,
+		AccessToken:  td.AccessToken,
+		RefreshToken: td.RefreshToken,
+	}
+}

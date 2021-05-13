@@ -11,12 +11,14 @@ import (
 //App contains handlers for the app
 type App struct {
 	RegisterUserHandler http.HandlerFunc
+	AuthenticateHandler http.HandlerFunc
 }
 
 //Handler returns the main handler for this application
 func (a App) Handler() http.HandlerFunc {
 	router := httprouter.New()
 	router.HandlerFunc(http.MethodPost, "/users", a.RegisterUserHandler)
+	router.HandlerFunc(http.MethodPost, "/auth", a.AuthenticateHandler)
 
 	return http.HandlerFunc(router.ServeHTTP)
 }
@@ -26,14 +28,16 @@ type Options func(o *Option)
 
 // /OptionalArgs optional arguments for this application
 type Option struct {
-	AddUser db.AddUserFunc
+	AddUser      db.AddUserFunc
+	RetrieveUser db.RetrieveUserByPhoneNumberFunc
 }
 
 //New creates a new instance of the App
 func New(dbProvider mongo.DbProviderFunc, options ...Options) App {
-
+	redisConfig := RedisInit()
 	o := Option{
-		AddUser: db.AddUser(dbProvider),
+		AddUser:      db.AddUser(dbProvider),
+		RetrieveUser: db.RetrieveUserByPhoneNumber(dbProvider),
 	}
 
 	for _, option := range options {
@@ -41,8 +45,10 @@ func New(dbProvider mongo.DbProviderFunc, options ...Options) App {
 	}
 
 	addUser := RegisterUserHandler(o.AddUser)
+	authenticate := AuthenticateHandler(o.RetrieveUser, redisConfig)
 
 	return App{
 		RegisterUserHandler: addUser,
+		AuthenticateHandler: authenticate,
 	}
 }

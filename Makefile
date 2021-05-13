@@ -10,4 +10,7 @@ run: build-local
 	RRS_PORT=7565 \
 	MONGO_DB_NAME=test \
 	MONGO_URL=mongodb://localhost:27017 \
+	JWT_ACCESS_SECRET=T52N6pRxNZDW45UR \
+	JWT_REFRESH_SECRET=Q768EuNprKx4uhGj \
+	REDIS_DSN=localhost:6379 \
 	./$(OUTPUT)
