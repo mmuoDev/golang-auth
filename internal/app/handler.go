@@ -2,8 +2,10 @@ package app
 
 import (
 	"golang-auth/internal/db"
+	"golang-auth/internal/middleware"
 	"golang-auth/internal/workflow"
 	"golang-auth/pkg"
+	"log"
 	"net/http"
 
 	"github.com/go-redis/redis/v7"
@@ -20,14 +22,14 @@ func RegisterUserHandler(addUser db.AddUserFunc) http.HandlerFunc {
 		add := workflow.AddUser(addUser)
 		if err := add(user); err != nil {
 			httputils.ServeError(err, w)
-			return 
+			return
 		}
 		w.WriteHeader(http.StatusCreated)
 	}
 }
 
 //AuthenticateHandler returns a http request to authenticate a user
-func AuthenticateHandler (retrieveUser db.RetrieveUserByPhoneNumberFunc, client *redis.Client) http.HandlerFunc {
+func AuthenticateHandler(retrieveUser db.RetrieveUserByPhoneNumberFunc, client *redis.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var a pkg.Login
 		httputils.JSONToDTO(&a, w, r)
@@ -37,8 +39,20 @@ func AuthenticateHandler (retrieveUser db.RetrieveUserByPhoneNumberFunc, client 
 		u, err := auth(a)
 		if err != nil {
 			httputils.ServeError(err, w)
-			return 
+			return
 		}
 		httputils.ServeJSON(u, w)
+	}
+}
+
+func TestHandler(client *redis.Client) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := middleware.IsAuthenticated(r, client); err != nil {
+			log.Print(err)
+			w.Write([]byte("unauthenticated"))
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.Write([]byte("Welcome!"))
 	}
 }

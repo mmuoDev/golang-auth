@@ -12,6 +12,7 @@ import (
 type App struct {
 	RegisterUserHandler http.HandlerFunc
 	AuthenticateHandler http.HandlerFunc
+	TestHandler         http.HandlerFunc
 }
 
 //Handler returns the main handler for this application
@@ -19,6 +20,7 @@ func (a App) Handler() http.HandlerFunc {
 	router := httprouter.New()
 	router.HandlerFunc(http.MethodPost, "/users", a.RegisterUserHandler)
 	router.HandlerFunc(http.MethodPost, "/auth", a.AuthenticateHandler)
+	router.HandlerFunc(http.MethodGet, "/test", a.TestHandler)
 
 	return http.HandlerFunc(router.ServeHTTP)
 }
@@ -46,9 +48,11 @@ func New(dbProvider mongo.DbProviderFunc, options ...Options) App {
 
 	addUser := RegisterUserHandler(o.AddUser)
 	authenticate := AuthenticateHandler(o.RetrieveUser, redisConfig)
+	testHandler := TestHandler(redisConfig)
 
 	return App{
 		RegisterUserHandler: addUser,
 		AuthenticateHandler: authenticate,
+		TestHandler:         testHandler,
 	}
 }
