@@ -21,6 +21,9 @@ type AddUserFunc func(r pkg.User) error
 //AuthenticateFunc authenticates a user
 type AuthenticateFunc func(r pkg.Login) (pkg.Auth, error)
 
+//LogoutFunc provides functionality to logout an authenticated user
+type LogoutFunc func (accessUUID string) error
+
 //AddUser adds a user
 func AddUser(addUser db.AddUserFunc) AddUserFunc {
 	return func(r pkg.User) error {
@@ -58,6 +61,16 @@ func Authenticate(retrieveUser db.RetrieveUserByPhoneNumberFunc, client *redis.C
 	}
 }
 
+//Logout logouts an authenticated user
+func Logout(client *redis.Client) LogoutFunc {
+	return func(accessUUID string) error {
+		d, err := deleteJWT(client, accessUUID) 
+		if err != nil || d == 0 {
+			return errors.Wrap(err, "Workflow - unable to delete id. User may be unauthorized!")
+		}
+		return nil
+	}
+}
 //validatePassword validates password for a user
 func validatePassword(hash, password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
@@ -100,22 +113,9 @@ func generateJWT(id, phoneNumber, role string) (*internal.TokenDetails, error) {
 	}
 
 	return td, nil
-	// signKey := []byte(os.Getenv("JWT_SECRET_KEY"))
-	// token := jwt.New(jwt.SigningMethodHS256)
-	// claims := token.Claims.(jwt.MapClaims)
-	// claims["phoneNumber"] = phoneNumber
-	// claims["role"] = role
-	// claims["authorized"] = true
-	// claims["exp"] = time.Now().Add(time.Minute * 15).Unix()
-
-	// ts, err := token.SignedString(signKey)
-	// if err != nil {
-	// 	return "", errors.Wrapf(err, "Something went wrong: %s", err)
-	// }
-	// return ts, nil
 }
 
-//saveJWTMetaData saves JWT's meta data
+//saveJWTMetaData saves JWT's meta data to redis
 func saveJWTMetaData(client *redis.Client, td *internal.TokenDetails, userID string) error {
 	at := time.Unix(td.ATExpires, 0) //convert Unix to UTC(to Time object)
 	rt := time.Unix(td.RTExpires, 0)
@@ -129,3 +129,14 @@ func saveJWTMetaData(client *redis.Client, td *internal.TokenDetails, userID str
 	}
 	return nil
 }
+
+//deleteJWT deletes a token from redis. Deleting from redis invalidates the token
+func deleteJWT(client *redis.Client, uuid string) (int64, error) {
+	d, err := client.Del(uuid).Result()
+	if err != nil {
+		return 0, errors.Wrapf(err, "Workflow - unable to delete uuid from redis, uuid=%s", uuid)
+	}
+	return d, nil
+}
+
+

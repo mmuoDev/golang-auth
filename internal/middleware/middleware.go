@@ -20,7 +20,7 @@ type TokenMetaData struct {
 
 //IsAuthenticated checks if a user is authenticated 
 func IsAuthenticated(r *http.Request, client *redis.Client) error {
-	token, err := getTokenMetaData(r)
+	token, err := GetTokenMetaData(r)
 	if err != nil {
 		return pkgErr.Wrap(err, "Token not valid")
 	}
@@ -71,7 +71,7 @@ func isTokenValid(r *http.Request) bool {
 }
 
 //getTokenMetaData extracts metadata from a token
-func getTokenMetaData(r *http.Request) (*TokenMetaData, error) {
+func GetTokenMetaData(r *http.Request) (*TokenMetaData, error) {
 	token, err := verifyToken(r)
 	if err != nil {
 		return &TokenMetaData{}, pkgErr.Wrap(err, "MIddleware - unable to retrieve token")

@@ -45,6 +45,23 @@ func AuthenticateHandler(retrieveUser db.RetrieveUserByPhoneNumberFunc, client *
 	}
 }
 
+//LogoutHandler returns  http request to logout a user
+func LogoutHandler(client *redis.Client) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		td, err := middleware.GetTokenMetaData(r)
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return 
+		}	
+		logout := workflow.Logout(client)
+		if err := logout(td.AccessUUID); err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return 
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
 func TestHandler(client *redis.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := middleware.IsAuthenticated(r, client); err != nil {
