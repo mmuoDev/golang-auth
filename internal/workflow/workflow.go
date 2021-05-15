@@ -4,6 +4,7 @@ import (
 	"golang-auth/internal"
 	"golang-auth/internal/db"
 	"golang-auth/internal/mapping"
+	"golang-auth/internal/middleware"
 	"golang-auth/pkg"
 	"os"
 	"time"
@@ -23,6 +24,34 @@ type AuthenticateFunc func(r pkg.Login) (pkg.Auth, error)
 
 //LogoutFunc provides functionality to logout an authenticated user
 type LogoutFunc func (accessUUID string) error
+
+//RefreshTokenFunc generates a new refresh token
+type RefreshTokenFunc func(rt pkg.RefreshTokenRequest) (pkg.RefreshToken, error)
+
+//RefreshToken returns functionality to generate another access/refresh token using a refresh token
+func RefreshToken (client *redis.Client) RefreshTokenFunc {
+	return func(rt pkg.RefreshTokenRequest) (pkg.RefreshToken, error) {
+		tk, err := middleware.GetRefreshTokenMetaData(rt.RefreshToken)
+		if err != nil {
+			return pkg.RefreshToken{}, errors.Wrap(err, "Workflow - Invalid refresh token")
+		}
+		//delete previous refresh token
+		d, err := deleteJWT(client, tk.RefreshUUID)
+		if err != nil || d == 0 { 
+			return pkg.RefreshToken{}, errors.Wrap(err, "Workflow - Expired refresh token")
+		}
+		//create new access and refresh tokens
+		td, err := generateJWT(tk.UserID, tk.Role)
+		if err != nil {
+			return pkg.RefreshToken{}, errors.Wrap(err, "Workflow - error generating access and refresh tokens")
+		}
+		//save token to redis
+		if err := saveJWTMetaData(client, td, tk.UserID); err != nil {
+			return pkg.RefreshToken{}, errors.Wrap(err, "Workflow - error saving token to redis")
+		}
+		return mapping.ToRefreshToken(td), nil
+	}
+}
 
 //AddUser adds a user
 func AddUser(addUser db.AddUserFunc) AddUserFunc {
@@ -50,7 +79,7 @@ func Authenticate(retrieveUser db.RetrieveUserByPhoneNumberFunc, client *redis.C
 			return pkg.Auth{}, errors.New("Workflow - Incorrect auth credentials")
 		}
 		userID := retrieve.ID.Val()
-		td, err := generateJWT(userID, retrieve.PhoneNumber, retrieve.Role)
+		td, err := generateJWT(userID, retrieve.Role)
 		if err != nil {
 			return pkg.Auth{}, errors.Wrapf(err, "Workflow - Unable to generate tokens")
 		}
@@ -78,7 +107,7 @@ func validatePassword(hash, password string) bool {
 }
 
 //generateJWT generates a token
-func generateJWT(id, phoneNumber, role string) (*internal.TokenDetails, error) {
+func generateJWT(id, role string) (*internal.TokenDetails, error) {
 	td := &internal.TokenDetails{}
 	td.ATExpires = time.Now().Add(time.Minute * 15).Unix()
 	td.AccessUUID = uuid.GenV4().Val()
@@ -107,7 +136,7 @@ func generateJWT(id, phoneNumber, role string) (*internal.TokenDetails, error) {
 	rtClaims["exp"] = td.RTExpires
 	rtClaims["role"] = role
 	rt := jwt.NewWithClaims(jwt.SigningMethodHS256, rtClaims)
-	td.RefreshToken, err = rt.SignedString([]byte(os.Getenv("REFRESH_SECRET")))
+	td.RefreshToken, err = rt.SignedString([]byte(os.Getenv("JWT_REFRESH_SECRET")))
 	if err != nil {
 		return nil, errors.Wrap(err, "Workflow - unable to generate refresh token")
 	}

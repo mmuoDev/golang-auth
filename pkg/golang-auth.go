@@ -24,3 +24,14 @@ type Auth struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 }
+
+//RefreshTokenRequest represents request body to refresh a token
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
+//RefreshToken represents response for generating refresh token
+type RefreshToken struct {
+	AccessToken  string
+	RefreshToken string
+}

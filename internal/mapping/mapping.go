@@ -45,3 +45,11 @@ func ToAuth(u internal.User, td *internal.TokenDetails) pkg.Auth {
 		RefreshToken: td.RefreshToken,
 	}
 }
+
+//ToRefreshToken maps internal refresh token
+func ToRefreshToken(td *internal.TokenDetails) pkg.RefreshToken {
+	return pkg.RefreshToken{
+		RefreshToken: td.RefreshToken,
+		AccessToken:  td.AccessToken,
+	}
+}

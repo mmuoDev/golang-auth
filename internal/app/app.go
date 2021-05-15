@@ -14,6 +14,7 @@ type App struct {
 	AuthenticateHandler http.HandlerFunc
 	TestHandler         http.HandlerFunc
 	LogoutHandler       http.HandlerFunc
+	RefreshTokenHandler http.HandlerFunc
 }
 
 //Handler returns the main handler for this application
@@ -22,6 +23,7 @@ func (a App) Handler() http.HandlerFunc {
 	router.HandlerFunc(http.MethodPost, "/users", a.RegisterUserHandler)
 	router.HandlerFunc(http.MethodPost, "/auth", a.AuthenticateHandler)
 	router.HandlerFunc(http.MethodPost, "/logout", a.LogoutHandler)
+	router.HandlerFunc(http.MethodPost, "/token/refresh", a.RefreshTokenHandler)
 	router.HandlerFunc(http.MethodGet, "/test", a.TestHandler)
 
 	return http.HandlerFunc(router.ServeHTTP)
@@ -52,11 +54,13 @@ func New(dbProvider mongo.DbProviderFunc, options ...Options) App {
 	authenticate := AuthenticateHandler(o.RetrieveUser, redisConfig)
 	testHandler := TestHandler(redisConfig)
 	logoutHandler := LogoutHandler(redisConfig)
+	refreshTokenHandler := RefreshTokenHandler(redisConfig)
 
 	return App{
 		RegisterUserHandler: addUser,
 		AuthenticateHandler: authenticate,
 		TestHandler:         testHandler,
 		LogoutHandler:       logoutHandler,
+		RefreshTokenHandler: refreshTokenHandler,
 	}
 }

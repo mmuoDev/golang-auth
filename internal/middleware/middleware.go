@@ -18,7 +18,13 @@ type TokenMetaData struct {
 	Role       string
 }
 
-//IsAuthenticated checks if a user is authenticated 
+type RefreshTokenMeta struct {
+	RefreshUUID string
+	UserID      string
+	Role        string
+}
+
+//IsAuthenticated checks if a user is authenticated
 func IsAuthenticated(r *http.Request, client *redis.Client) error {
 	token, err := GetTokenMetaData(r)
 	if err != nil {
@@ -56,6 +62,51 @@ func verifyToken(r *http.Request) (*jwt.Token, error) {
 		return nil, pkgErr.Wrapf(err, "Invalid token!")
 	}
 	return token, nil
+}
+
+//verifyRefreshToken verifies a refresh token
+func verifyRefreshToken(tk string) (*jwt.Token, error) {
+	token, err := jwt.Parse(tk, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(os.Getenv("JWT_REFRESH_SECRET")), nil
+	})
+	if err != nil {
+		return nil, pkgErr.Wrap(err, "Refresh token invalid")
+	}
+	if _, ok := token.Claims.(jwt.Claims); !ok && !token.Valid {
+		return nil, errors.New("Refresh token is invalid")
+	}
+	return token, nil
+}
+
+//GetRefreshTokenMetaData gets metadata off a refresh token
+func GetRefreshTokenMetaData(tk string) (RefreshTokenMeta, error) {
+	token, err := verifyRefreshToken(tk)
+	if err != nil {
+		return RefreshTokenMeta{}, pkgErr.Wrap(err, "Middleware - unable to verify refresh token")
+	}
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		refreshUUID, ok := claims["refresh_uuid"].(string)
+		if !ok {
+			return RefreshTokenMeta{}, fmt.Errorf("Refresh UUID metadata not found in token")
+		}
+		userID, ok := claims["user_id"].(string)
+		if !ok {
+			return RefreshTokenMeta{}, fmt.Errorf("userID metadata not found in token")
+		}
+		role, ok := claims["role"].(string)
+		if !ok {
+			return RefreshTokenMeta{}, fmt.Errorf("Role metadata not found in token")
+		}
+		return RefreshTokenMeta{
+			RefreshUUID: refreshUUID,
+			UserID:      userID,
+			Role:        role,
+		}, nil
+	}
+	return RefreshTokenMeta{}, err
 }
 
 //isTokenValid checks if token is valid

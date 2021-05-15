@@ -62,6 +62,22 @@ func LogoutHandler(client *redis.Client) http.HandlerFunc {
 	}
 }
 
+//RefreshTokenHandler returns http requst to refresh tokens
+func RefreshTokenHandler(client *redis.Client) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var rt pkg.RefreshTokenRequest
+		httputils.JSONToDTO(&rt, w, r)
+
+		refresh := workflow.RefreshToken(client)
+		d, err := refresh(rt)
+		if err != nil {
+			httputils.ServeError(err, w)
+			return
+		}
+		httputils.ServeJSON(d, w)
+	}
+}
+
 func TestHandler(client *redis.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := middleware.IsAuthenticated(r, client); err != nil {
