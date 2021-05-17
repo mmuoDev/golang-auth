@@ -26,4 +26,17 @@ type TokenDetails struct {
 	RTExpires    int64
 }
 
+type HTTPMethod struct {
+	Method string `json:"method"`
+}
 
+type Role struct {
+	Role string `json:"role"`
+}
+
+//RBAC represents data for role-based access control
+type RBAC struct {
+	Resource string       `json:"resource"`
+	Methods  []HTTPMethod `json:"methods"`
+	Roles    []Role       `json:"roles"`
+}

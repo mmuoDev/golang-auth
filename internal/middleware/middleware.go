@@ -24,6 +24,17 @@ type RefreshTokenMeta struct {
 	Role        string
 }
 
+func CheckAuthentication(r *http.Request, client *redis.Client) (*TokenMetaData, error) {
+	token, err := GetTokenMetaData(r)
+	if err != nil {
+		return &TokenMetaData{}, pkgErr.Wrap(err, "Token not valid")
+	}
+	if isValid := isTokenStoredInRedis(token, client); !isValid {
+		return &TokenMetaData{}, errors.New("Token is expired")
+	}
+	return token, nil
+}
+
 //IsAuthenticated checks if a user is authenticated
 func IsAuthenticated(r *http.Request, client *redis.Client) error {
 	token, err := GetTokenMetaData(r)

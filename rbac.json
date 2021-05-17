@@ -1,0 +1,12 @@
+[
+    {
+        "resource": "/test/{id}/refresh",
+        "methods": ["get", "post"],
+        "role": ["admin"]
+    },
+    {
+        "resource": "/partners",
+        "methods": ["get", "post"],
+        "role": ["admin"]
+    }
+]

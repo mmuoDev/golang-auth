@@ -1,12 +1,15 @@
 package app
 
 import (
+	"fmt"
 	"golang-auth/internal/db"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/mmuoDev/commons/mongo"
 )
+
+const (aID = "accountId")
 
 //App contains handlers for the app
 type App struct {
@@ -20,12 +23,14 @@ type App struct {
 //Handler returns the main handler for this application
 func (a App) Handler() http.HandlerFunc {
 	router := httprouter.New()
+
+	router.HandlerFunc(http.MethodGet, fmt.Sprintf("/test/:%s/refresh", aID), a.TestHandler)
+
 	router.HandlerFunc(http.MethodPost, "/users", a.RegisterUserHandler)
 	router.HandlerFunc(http.MethodPost, "/auth", a.AuthenticateHandler)
 	router.HandlerFunc(http.MethodPost, "/logout", a.LogoutHandler)
 	router.HandlerFunc(http.MethodPost, "/token/refresh", a.RefreshTokenHandler)
-	router.HandlerFunc(http.MethodGet, "/test", a.TestHandler)
-
+	
 	return http.HandlerFunc(router.ServeHTTP)
 }
 
