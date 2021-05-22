@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"golang-auth/internal/db"
 	"net/http"
 
@@ -17,7 +16,6 @@ const (
 type App struct {
 	RegisterUserHandler http.HandlerFunc
 	AuthenticateHandler http.HandlerFunc
-	TestHandler         http.HandlerFunc
 	LogoutHandler       http.HandlerFunc
 	RefreshTokenHandler http.HandlerFunc
 }
@@ -25,8 +23,6 @@ type App struct {
 //Handler returns the main handler for this application
 func (a App) Handler() http.HandlerFunc {
 	router := httprouter.New()
-
-	router.HandlerFunc(http.MethodGet, fmt.Sprintf("/test/:%s/refresh", aID), a.TestHandler)
 
 	router.HandlerFunc(http.MethodPost, "/users", a.RegisterUserHandler)
 	router.HandlerFunc(http.MethodPost, "/auth", a.AuthenticateHandler)
@@ -59,14 +55,12 @@ func New(dbProvider mongo.DbProviderFunc, options ...Options) App {
 
 	addUser := RegisterUserHandler(o.AddUser)
 	authenticate := AuthenticateHandler(o.RetrieveUser, redisConfig)
-	testHandler := TestHandler(redisConfig)
 	logoutHandler := LogoutHandler(redisConfig)
 	refreshTokenHandler := RefreshTokenHandler(redisConfig)
 
 	return App{
 		RegisterUserHandler: addUser,
 		AuthenticateHandler: authenticate,
-		TestHandler:         testHandler,
 		LogoutHandler:       logoutHandler,
 		RefreshTokenHandler: refreshTokenHandler,
 	}

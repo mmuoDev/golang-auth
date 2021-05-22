@@ -1,4 +1,4 @@
-package middleware
+package jwt
 
 import (
 	"errors"
@@ -54,14 +54,14 @@ func getToken(r *http.Request) (string, error) {
 	if len(s) == 2 {
 		return s[1], nil
 	}
-	return "", errors.New("Middleware - Token not found")
+	return "", errors.New("jwt - Token not found")
 }
 
 //verifyToken verifies signing mtd
 func verifyToken(r *http.Request) (*jwt.Token, error) {
 	ts, err := getToken(r)
 	if err != nil {
-		return nil, pkgErr.Wrap(err, "Middleware - Token not found")
+		return nil, pkgErr.Wrap(err, "jwt - Token not found")
 	}
 	token, err := jwt.Parse(ts, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -96,7 +96,7 @@ func verifyRefreshToken(tk string) (*jwt.Token, error) {
 func GetRefreshTokenMetaData(tk string) (RefreshTokenMeta, error) {
 	token, err := verifyRefreshToken(tk)
 	if err != nil {
-		return RefreshTokenMeta{}, pkgErr.Wrap(err, "Middleware - unable to verify refresh token")
+		return RefreshTokenMeta{}, pkgErr.Wrap(err, "jwt - unable to verify refresh token")
 	}
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		refreshUUID, ok := claims["refresh_uuid"].(string)
@@ -136,7 +136,7 @@ func isTokenValid(r *http.Request) bool {
 func GetTokenMetaData(r *http.Request) (*TokenMetaData, error) {
 	token, err := verifyToken(r)
 	if err != nil {
-		return &TokenMetaData{}, pkgErr.Wrap(err, "MIddleware - unable to retrieve token")
+		return &TokenMetaData{}, pkgErr.Wrap(err, "jwt - unable to retrieve token")
 	}
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		accessUUID, ok := claims["access_uuid"].(string)

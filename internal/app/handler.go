@@ -2,7 +2,7 @@ package app
 
 import (
 	"golang-auth/internal/db"
-	"golang-auth/internal/middleware"
+	"golang-auth/internal/jwt"
 	"golang-auth/internal/workflow"
 	"golang-auth/pkg"
 	"net/http"
@@ -46,7 +46,7 @@ func AuthenticateHandler(retrieveUser db.RetrieveUserByPhoneNumberFunc, client *
 //LogoutHandler returns  http request to logout a user
 func LogoutHandler(client *redis.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		td, err := middleware.GetTokenMetaData(r)
+		td, err := jwt.GetTokenMetaData(r)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
@@ -73,20 +73,5 @@ func RefreshTokenHandler(client *redis.Client) http.HandlerFunc {
 			return
 		}
 		httputils.ServeJSON(d, w)
-	}
-}
-
-//TestHandler runs a test case
-func TestHandler(client *redis.Client) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if auth := pkg.IsAuthenticated(r); auth != 0 {
-			if auth == 400 {
-				w.WriteHeader(http.StatusBadRequest)
-			}
-			//Test for other status codes
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		w.Write([]byte("hello world!"))
 	}
 }

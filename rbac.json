@@ -1,17 +1,12 @@
 [
     {
-        "resource": "/est/$/refresh",
+        "resource": "/accounts/$/claims",
         "methods": ["get", "post"],
-        "roles": ["admin"]
-    },
-    {
-        "resource": "/test/$/refresh",
-        "methods": ["get", "post", "put"],
-        "roles": ["admin"]
+        "roles": ["supervisor"]
     },
     {
         "resource": "/partners",
-        "methods": ["get", "post"],
+        "methods": ["put"],
         "roles": ["admin"]
     }
 ]

@@ -2,7 +2,7 @@ package pkg
 
 import (
 	"golang-auth/internal"
-	"golang-auth/internal/middleware"
+	"golang-auth/internal/jwt"
 	"log"
 	"net/http"
 	"os"
@@ -16,7 +16,7 @@ import (
 //IsAuthenticated checks if user is authenticated and authorized to use a resource
 func IsAuthenticated(r *http.Request) int {
 	client := RedisInit()
-	token, err := middleware.CheckAuthentication(r, client)
+	token, err := jwt.CheckAuthentication(r, client)
 	if err != nil {
 		log.Printf("Token is invalid for http request=%v", r)
 		return http.StatusUnauthorized
