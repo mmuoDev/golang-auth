@@ -17,7 +17,6 @@ func RegisterUserHandler(addUser db.AddUserFunc) http.HandlerFunc {
 		var user pkg.User
 		httputils.JSONToDTO(&user, w, r)
 		//TODO: Validation
-
 		add := workflow.AddUser(addUser)
 		if err := add(user); err != nil {
 			httputils.ServeError(err, w)

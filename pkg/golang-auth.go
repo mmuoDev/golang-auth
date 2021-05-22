@@ -8,7 +8,6 @@ type User struct {
 	Password    string `json:"password"`
 	Role        string `json:"role"`
 	PhoneNumber string `json:"phoneNumber"`
-	IsVerified  bool   `json:"isVerified"`
 }
 
 //Login represents data needed to authenticate a user and generate a token

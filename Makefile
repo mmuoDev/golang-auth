@@ -1,6 +1,9 @@
-OUTPUT = main # will be archived
-VERSION = 0.1
+OUTPUT = main 
 SERVICE_NAME = golang-auth
+
+.PHONY: test
+test:
+	go test ./...
 
 build-local:
 	go build -o $(OUTPUT) ./cmd/$(SERVICE_NAME)/main.go

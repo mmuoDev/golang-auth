@@ -10,6 +10,7 @@ require (
 	github.com/klauspost/compress v1.12.2 // indirect
 	github.com/mmuoDev/commons v0.0.0-20210517210845-7155607834d0
 	github.com/pkg/errors v0.9.1
+	github.com/stretchr/testify v1.6.1
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	go.mongodb.org/mongo-driver v1.5.2
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
