@@ -36,7 +36,7 @@ type Role struct {
 
 //RBAC represents data for role-based access control
 type RBAC struct {
-	Resource string       `json:"resource"`
-	Methods  []HTTPMethod `json:"methods"`
-	Roles    []Role       `json:"roles"`
+	Resource string   `json:"resource"`
+	Methods  []string `json:"methods"`
+	Roles    []string `json:"roles"`
 }

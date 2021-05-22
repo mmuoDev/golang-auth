@@ -1,12 +1,17 @@
 [
     {
-        "resource": "/test/{id}/refresh",
+        "resource": "/est/$/refresh",
         "methods": ["get", "post"],
-        "role": ["admin"]
+        "roles": ["admin"]
+    },
+    {
+        "resource": "/test/$/refresh",
+        "methods": ["get", "post", "put"],
+        "roles": ["admin"]
     },
     {
         "resource": "/partners",
         "methods": ["get", "post"],
-        "role": ["admin"]
+        "roles": ["admin"]
     }
 ]

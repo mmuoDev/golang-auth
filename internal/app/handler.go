@@ -5,11 +5,7 @@ import (
 	"golang-auth/internal/middleware"
 	"golang-auth/internal/workflow"
 	"golang-auth/pkg"
-	"log"
 	"net/http"
-	"path/filepath"
-
-	"golang-auth/internal"
 
 	"github.com/go-redis/redis/v7"
 	"github.com/mmuoDev/commons/httputils"
@@ -41,7 +37,7 @@ func AuthenticateHandler(retrieveUser db.RetrieveUserByPhoneNumberFunc, client *
 		auth := workflow.Authenticate(retrieveUser, client)
 		u, err := auth(a)
 		if err != nil {
-			httputils.ServeError(err, w)
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		httputils.ServeJSON(u, w)
@@ -81,45 +77,17 @@ func RefreshTokenHandler(client *redis.Client) http.HandlerFunc {
 	}
 }
 
-func IsAuthenticated(r *http.Request, w http.ResponseWriter, client *redis.Client) string {
-	token, err := middleware.CheckAuthentication(r, client)
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-	}
-	role := token.Role
-	url := r.URL.Path
-	method := r.Method
-
-	var rbac []internal.RBAC
-	httputils.FileToStruct(filepath.Join("rbac.json"), &rbac)
-
-	for _, v := range rbac {
-		r := v.Resource
-		mtds := v.Methods
-		roles := v.Roles
-
-		
-		log.Fatal(k, v)
-	}
-	return role + url + method
-}
-
+//TestHandler runs a test case
 func TestHandler(client *redis.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		s := IsAuthenticated(r, w, client)
-		w.Write([]byte(s))
-		// if err := middleware.IsAuthenticated(r, client); err != nil {
-		// 	log.Fatal( r.URL.Path)
-
-		// 	//Testing RBAC
-		// 	//TODO: Put in the pkg folder
-		// 	var rbac internal.RBAC
-		// 	httputils.JSONToDTO(&rbac, w, r)
-
-		// 	w.Write([]byte("unauthenticated"))
-		// 	w.WriteHeader(http.StatusUnauthorized)
-		// 	return
-		// }
-		// w.Write([]byte("Welcome!"))
+		if auth := pkg.IsAuthenticated(r); auth != 0 {
+			if auth == 400 {
+				w.WriteHeader(http.StatusBadRequest)
+			}
+			//Test for other status codes
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.Write([]byte("hello world!"))
 	}
 }
