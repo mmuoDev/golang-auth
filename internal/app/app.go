@@ -8,10 +8,6 @@ import (
 	"github.com/mmuoDev/commons/mongo"
 )
 
-const (
-	aID = "accountId"
-)
-
 //App contains handlers for the app
 type App struct {
 	RegisterUserHandler http.HandlerFunc
